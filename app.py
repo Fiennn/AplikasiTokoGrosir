@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Aplikasi Manajemen Stok Masuk Keluar & Laporan Laba Rugi — Toko Grosir
-Stack : Streamlit + SQLite (grosir.db) + Pandas
+Stack : Streamlit + SQLite/PostgreSQL(Supabase) + Pandas
+DB    : otomatis pakai Supabase jika ada secret SUPABASE_DB_URL,
+        fallback ke SQLite lokal (grosir.db) jika tidak ada.
 Run   : streamlit run app.py
 """
 
@@ -21,18 +23,86 @@ st.set_page_config(
 DB_PATH = "grosir.db"
 
 # ============================================================
-#  DATABASE (otomatis membuat file grosir.db)
+#  DATABASE (SQLite lokal otomatis, atau Supabase jika dikonfigurasi)
 # ============================================================
 
 
-def get_conn():
+def _detect_db_url():
+    try:
+        url = st.secrets.get("SUPABASE_DB_URL", "")
+        if url:
+            return str(url).strip()
+    except Exception:
+        pass
+    return ""
+
+DB_URL = _detect_db_url()
+IS_PG = bool(DB_URL)
+
+if IS_PG:
+    import psycopg2
+
+    if "sslmode" not in DB_URL:
+        DB_URL += ("&" if "?" in DB_URL else "?") + "sslmode=require"
+
+
+def get_sqlite_conn():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    conn = get_conn()
+    if IS_PG:
+        ddl_barang = """
+            CREATE TABLE IF NOT EXISTS barang (
+                sku         TEXT PRIMARY KEY,
+                nama        TEXT NOT NULL,
+                kategori    TEXT,
+                harga_beli  DOUBLE PRECISION NOT NULL DEFAULT 0,
+                harga_jual  DOUBLE PRECISION NOT NULL DEFAULT 0,
+                stok        INTEGER NOT NULL DEFAULT 0,
+                limit_alert INTEGER NOT NULL DEFAULT 10
+            )
+        """
+        ddl_masuk = """
+            CREATE TABLE IF NOT EXISTS barang_masuk (
+                id       BIGSERIAL PRIMARY KEY,
+                sku      TEXT NOT NULL,
+                jumlah   INTEGER NOT NULL,
+                catatan  TEXT,
+                tanggal  TEXT NOT NULL
+            )
+        """
+        ddl_keluar = """
+            CREATE TABLE IF NOT EXISTS barang_keluar (
+                id            BIGSERIAL PRIMARY KEY,
+                sku           TEXT NOT NULL,
+                jumlah        INTEGER NOT NULL,
+                harga_beli    DOUBLE PRECISION NOT NULL,
+                harga_jual    DOUBLE PRECISION NOT NULL,
+                omzet         DOUBLE PRECISION NOT NULL,
+                laba          DOUBLE PRECISION NOT NULL,
+                pelanggan     TEXT,
+                tanggal       TEXT NOT NULL
+            )
+        """
+        ddl_biaya = """
+            CREATE TABLE IF NOT EXISTS biaya_operasional (
+                id         BIGSERIAL PRIMARY KEY,
+                keterangan TEXT NOT NULL,
+                jumlah     DOUBLE PRECISION NOT NULL,
+                tanggal    TEXT NOT NULL
+            )
+        """
+        for ddl in (ddl_barang, ddl_masuk, ddl_keluar, ddl_biaya):
+            conn = psycopg2.connect(DB_URL)
+            conn.cursor().execute(ddl)
+            conn.commit()
+            conn.close()
+        return
+
+    conn = get_sqlite_conn()
     c = conn.cursor()
     c.execute(
         """
@@ -92,7 +162,14 @@ init_db()
 
 def df(sql, params=()):
     """Jalankan SELECT dan kembalikan DataFrame."""
-    conn = get_conn()
+    if IS_PG:
+        conn = psycopg2.connect(DB_URL)
+        try:
+            out = pd.read_sql_query(sql.replace("?", "%s"), conn, params=params)
+        finally:
+            conn.close()
+        return out
+    conn = get_sqlite_conn()
     out = pd.read_sql_query(sql, conn, params=params)
     conn.close()
     return out
@@ -100,7 +177,13 @@ def df(sql, params=()):
 
 def run(sql, params=()):
     """Jalankan INSERT/UPDATE/DELETE."""
-    conn = get_conn()
+    if IS_PG:
+        conn = psycopg2.connect(DB_URL)
+        conn.cursor().execute(sql.replace("?", "%s"), params)
+        conn.commit()
+        conn.close()
+        return
+    conn = get_sqlite_conn()
     conn.execute(sql, params)
     conn.commit()
     conn.close()
@@ -123,6 +206,8 @@ menu = st.sidebar.radio(
 )
 
 st.sidebar.divider()
+db_label = "☁️ Database: Supabase (permanen)" if IS_PG else "💾 Database: SQLite lokal"
+st.sidebar.caption(db_label)
 st.sidebar.write(f"📅 {datetime.now().strftime('%A, %d %B %Y')}")
 
 
