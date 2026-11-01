@@ -158,7 +158,14 @@ def init_db():
     conn.close()
 
 
-init_db()
+DB_CONFIG_ERROR = None
+try:
+    init_db()
+except Exception as _e:
+    if IS_PG:
+        DB_CONFIG_ERROR = _e
+    else:
+        raise
 
 
 def df(sql, params=()):
@@ -397,6 +404,99 @@ def goto(label_menu):
 # Terapkan target navigasi SEBELUM widget radio dibuat
 if "__nav_target" in st.session_state:
     st.session_state["Navigasi"] = st.session_state.pop("__nav_target")
+
+
+# ============================================================
+#  HALAMAN DIAGNOSA — jika Supabase gagal terhubung
+# ============================================================
+def _mask_url(url):
+    import re
+
+    return re.sub(r"://([^:/@]+):([^@]+)@", r"://\1:******@", url)
+
+
+if DB_CONFIG_ERROR:
+    import urllib.parse as _up
+
+    err_txt = str(DB_CONFIG_ERROR)
+    low = err_txt.lower()
+
+    st.markdown('<div class="ptitle"><h1>🔌 Koneksi Supabase Gagal</h1><p>Aplikasi mendeteksi SUPABASE_DB_URL, tapi tidak bisa menyambung ke database-nya.</p></div>', unsafe_allow_html=True)
+    st.error(f"**Detail teknis:** `{err_txt}`")
+
+    tips = []
+
+    # deteksi placeholder yang belum diganti
+    try:
+        _parsed = _up.urlsplit(DB_URL)
+        _pwd = _parsed.password or ""
+    except Exception:
+        _parsed, _pwd = None, ""
+    if (not _pwd) or "password" in _pwd.lower() or "your-" in _pwd.lower():
+        tips.append(
+            ("Password masih placeholder / kosong",
+             "Buka bagian `[YOUR-PASSWORD]` di secret — itu harus diganti dengan "
+             "password database asli yang kamu buat di Supabase. Contoh benar:")
+        )
+
+    if "password authentication failed" in low or ("password" in low and "auth" in low):
+        tips.append(
+            ("Password database salah",
+             "Password yang diketik tidak cocok. Buka pop-up **Connect → Connection string** di "
+             "Supabase, klik **Reset database password**, buat password baru (huruf+angka saja), "
+             "lalu perbarui secret dengan password barunya.")
+        )
+    if "could not translate host name" in low or "not known" in low:
+        tips.append(
+            ("Hostname salah",
+             "Cek bagian host pada URL — pastikan menyamai `aws-1-eu-west-3.pooler.supabase.com` "
+             "dengan angka project-mu, tanpa salah ketik.")
+        )
+    if "connection refused" in low or "timed out" in low or "timeout" in low:
+        tips.append(
+            ("Port/servis bermasalah",
+             "Pastikan memakai **Transaction pooler** (port `6543`), bukan session pooler "
+             "(`5432`) atau direct connection. Cek juga project Supabase tidak sedang PAUSED.")
+        )
+    if "invalid" in low and ("connection" in low or "uri" in low or "syntax" in low):
+        tips.append(
+            ("Format URL salah",
+             "Biasanya karena password mengandung karakter spesial (`@ / : #`). "
+             "Reset password menjadi huruf+angka saja.")
+        )
+    if "ssl" in low:
+        tips.append(
+            ("SSL",
+             "Terguae koneksi butuh SSL — kode sudah menambahkan `sslmode=require` otomatis; "
+             "pastikan URL tidak diubah manual.")
+        )
+    if not tips:
+        tips.append(
+            ("Penyebab umum lainnya",
+             "Cek kembali format secret di Streamlit Cloud → Settings → Secrets, "
+             "lalu bandingkan dengan format dari Supabase Connect → Connection pooling → Transaction mode.")
+        )
+
+    st.markdown('<div class="sechead">🔍 Kemungkinan penyebab &amp; solusi</div>', unsafe_allow_html=True)
+    for i, (judul, cara) in enumerate(tips, 1):
+        with st.container(border=True):
+            st.markdown(f"**{i}. {judul}**")
+            st.markdown(cara)
+
+    st.markdown('<div class="sechead">🧾 Koneksi yang sedang terbaca dari secret</div>', unsafe_allow_html=True)
+    st.code(
+        f"host : {_parsed.hostname if _parsed else '?'}\n"
+        f"port : {_parsed.port if _parsed else '?'}\n"
+        f"user : {_parsed.username if _parsed else '?'}\n"
+        f"sdnl : {'ADA' if _pwd else 'TIDAK ADA'}\n\n"
+        f"URL (password disensor): {_mask_url(DB_URL)}",
+        language="text",
+    )
+
+    st.info("💡 **Cara perbaiki:** Streamlit Cloud → aplikasi Toko Grosir → ⋮ → "
+            "**Settings → Secrets** → perbaiki nilai `SUPABASE_DB_URL` → Save. "
+            "Aplikasi ini otomatis me-reload setelah secret diubah.")
+    st.stop()
 
 
 # ============================================================
