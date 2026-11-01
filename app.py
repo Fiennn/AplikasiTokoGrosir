@@ -4,6 +4,7 @@ Aplikasi Manajemen Stok Masuk Keluar & Laporan Laba Rugi — Toko Grosir
 Stack : Streamlit + SQLite/PostgreSQL(Supabase) + Pandas
 DB    : otomatis pakai Supabase jika ada secret SUPABASE_DB_URL,
         fallback ke SQLite lokal (grosir.db) jika tidak ada.
+Tema  : Liquid Glass
 Run   : streamlit run app.py
 """
 
@@ -194,87 +195,164 @@ def rupiah(v):
 
 
 # ============================================================
-#  DESAIN & KOMPONEN VISUAL
+#  DESAIN & KOMPONEN VISUAL — TEMA LIQUID GLASS
 # ============================================================
 
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-.stApp{background:#f4f7fb;font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;}
+/* ===== DASAR & LATAR LIQUID ===== */
+.stApp{
+  font-family:'Inter','Segoe UI',sans-serif;
+  background:transparent;
+  color:#1e293b;
+}
+.stApp::before{
+  content:"";position:fixed;inset:0;z-index:-2;
+  background:
+    radial-gradient(720px 480px at 90% -8%, rgba(79,70,229,.11), transparent 62%),
+    radial-gradient(560px 420px at -10% 8%, rgba(14,165,233,.10), transparent 58%),
+    radial-gradient(760px 520px at 55% 115%, rgba(16,185,129,.08), transparent 60%),
+    linear-gradient(180deg,#f7f9fc 0%,#eef2f8 100%);
+}
+.stApp::after{
+  content:"";position:fixed;z-index:-1;width:44vmax;height:44vmax;
+  border-radius:46% 54% 58% 42%/54% 46% 54% 46%;
+  left:-16vmax;top:-14vmax;
+  background:radial-gradient(circle at 35% 35%, rgba(99,102,241,.07), transparent 65%);
+  filter:blur(6px);
+  animation:drift 34s ease-in-out infinite alternate;
+}
+@keyframes drift{
+  0%{transform:translate(0,0) rotate(0deg);}
+  50%{transform:translate(6vmax,4vmax) rotate(14deg);}
+  100%{transform:translate(2vmax,9vmax) rotate(-10deg);}
+}
 #MainMenu,footer,header{visibility:hidden;}
-a:link,a:visited{color:#2563eb;}
+a:link,a:visited{color:#4f46e5;}
 
 /* ===== SIDEBAR ===== */
 section[data-testid="stSidebar"]{
-  background:linear-gradient(180deg,#0b1e4b 0%,#1e3a8a 55%,#312e81 100%);
+  background:rgba(251,252,255,.72) !important;
+  backdrop-filter:blur(26px) saturate(160%);-webkit-backdrop-filter:blur(26px) saturate(160%);
+  border-right:1px solid rgba(255,255,255,.7);
 }
-section[data-testid="stSidebar"] *{color:#dbeafe !important;}
+section[data-testid="stSidebar"] *{color:#334155 !important;}
 .brand{display:flex;gap:12px;align-items:center;margin:6px 0 18px;}
-.brand-ico{font-size:1.6rem;background:linear-gradient(135deg,#38bdf8,#6366f1);width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;box-shadow:0 4px 14px rgba(56,189,248,.4);}
-.brand h1{font-size:1.1rem;font-weight:800;margin:0 !important;line-height:1.2;}
-.brand p{font-size:.72rem;opacity:.75;margin:2px 0 0 !important;}
-.menulabel{font-size:.66rem;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;opacity:.55;margin-bottom:8px;}
-section[data-testid="stSidebar"] .stRadio [role=radiogroup]{gap:6px;}
+.brand-ico{font-size:1.5rem;width:50px;height:50px;display:flex;align-items:center;justify-content:center;border-radius:16px;
+  background:linear-gradient(135deg,rgba(79,70,229,.95),rgba(109,40,217,.95));
+  box-shadow:0 10px 24px -8px rgba(79,70,229,.55), inset 0 1px 1px rgba(255,255,255,.35);}
+.brand h1{font-size:1.02rem;font-weight:800;color:#0f172a !important;margin:0 !important;letter-spacing:-.2px;line-height:1.2;}
+.brand p{font-size:.7rem;color:#64748b !important;margin:2px 0 0 !important;font-weight:500;}
+.menulabel{font-size:.62rem;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:#94a3b8 !important;margin-bottom:8px;}
+section[data-testid="stSidebar"] .stRadio [role=radiogroup]{gap:5px;}
 section[data-testid="stSidebar"] .stRadio label{
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  border-radius:12px;padding:11px 14px;font-weight:600;font-size:.88rem;
+  background:rgba(255,255,255,.55);border:1px solid rgba(15,23,42,.06);
+  border-radius:13px;padding:10px 13px;font-weight:600;font-size:.86rem;color:#334155 !important;
   transition:all .18s ease;min-height:0 !important;
+  box-shadow:0 1px 2px rgba(16,24,40,.03);
 }
-section[data-testid="stSidebar"] .stRadio label:hover{background:rgba(255,255,255,.15);transform:translateX(3px);}
+section[data-testid="stSidebar"] .stRadio label:hover{background:#fff;transform:translateX(3px);box-shadow:0 4px 12px rgba(16,24,40,.08);}
 section[data-testid="stSidebar"] .stRadio label:has(input:checked){
-  background:linear-gradient(90deg,#3b82f6,#6366f1);border-color:#60a5fa;
-  box-shadow:0 4px 14px rgba(59,130,246,.45);
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);border-color:transparent;
+  box-shadow:0 10px 22px -8px rgba(79,70,229,.55);
 }
+section[data-testid="stSidebar"] .stRadio label:has(input:checked) *{color:#fff !important;}
 section[data-testid="stSidebar"] .stRadio [role=radiogroup] input{position:absolute;opacity:0;pointer-events:none;}
-.sidechip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 12px;font-size:.78rem;margin-top:6px;}
+.sidechip{background:rgba(15,23,42,.04);border:1px solid rgba(15,23,42,.07);border-radius:11px;padding:8px 12px;font-size:.76rem;font-weight:500;color:#475569 !important;margin-top:6px;}
+section[data-testid="stSidebar"] .stButton>button{
+  background:rgba(15,23,42,.05) !important;border:1px solid rgba(15,23,42,.1) !important;color:#334155 !important;
+}
 
-/* ===== JUDUL HALAMAN & SEKSI ===== */
-.ptitle h1{font-size:1.75rem;font-weight:800;color:#0f172a;margin:0;}
-.ptitle p{color:#64748b;font-size:.88rem;margin:4px 0 10px;}
-.sechead{display:flex;align-items:center;gap:9px;font-size:1.05rem;font-weight:800;color:#1e293b;margin:20px 0 10px;}
-.sechead::before{content:"";display:inline-block;width:5px;height:20px;border-radius:4px;background:linear-gradient(180deg,#3b82f6,#8b5cf6);}
-.sechead small{font-weight:600;color:#94a3b8;font-size:.76rem;}
+/* ===== JUDUL & SEKSI ===== */
+.ptitle h1{font-size:1.65rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:-.5px;}
+.ptitle p{color:#64748b;font-size:.86rem;margin:4px 0 10px;font-weight:500;}
+.sechead{display:flex;align-items:baseline;gap:8px;font-size:1rem;font-weight:800;color:#0f172a;margin:22px 0 10px;letter-spacing:-.2px;}
+.sechead small{font-weight:600;color:#94a3b8;font-size:.75rem;margin-left:2px;}
 
-/* ===== KARTU KPI ===== */
-.kpi-card{border-radius:18px;padding:18px 20px;color:#fff;box-shadow:0 10px 26px -8px rgba(2,20,60,.45);position:relative;overflow:hidden;min-height:146px;}
-.kpi-card::after{content:"";position:absolute;right:-28px;top:-28px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.14);pointer-events:none;}
-.kpi-ico{font-size:1.4rem;background:rgba(255,255,255,.22);width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:13px;margin-bottom:10px;}
-.kpi-label{font-size:.76rem;font-weight:700;opacity:.9;letter-spacing:.4px;text-transform:uppercase;}
-.kpi-val{font-size:1.5rem;font-weight:800;margin-top:2px;position:relative;z-index:1;}
-.kpi-sub{font-size:.74rem;opacity:.85;margin-top:6px;}
+/* ===== KARTU KPI (LIQUID GLASS) ===== */
+.kpi-card{border-radius:20px;padding:17px 18px;color:#0f172a;position:relative;overflow:hidden;
+  background:rgba(255,255,255,.66);
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 1px 2px rgba(16,24,40,.05),0 16px 38px -20px rgba(16,24,40,.20);}
+.kpi-glow{position:absolute;right:-36px;bottom:-36px;width:128px;height:128px;border-radius:50%;
+  background:radial-gradient(circle at 42% 42%, var(--acg), transparent 68%);opacity:.5;filter:blur(2px);}
+.kpi-ico{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:13px;margin-bottom:12px;
+  color:var(--ac);background:var(--acb);
+  box-shadow:inset 0 0 0 1px var(--acb2);}
+.kpi-ico svg{display:block;}
+.kpi-label{font-size:.68rem;font-weight:700;color:#64748b;letter-spacing:.7px;text-transform:uppercase;}
+.kpi-val{font-size:1.42rem;font-weight:800;margin-top:3px;letter-spacing:-.6px;position:relative;z-index:1;}
+.kpi-sub{font-size:.73rem;font-weight:600;margin-top:7px;color:#64748b;}
 
 /* ===== MINI STAT ===== */
-.mstat{background:#fff;border:1px solid #e5eaf2;border-radius:14px;padding:12px 16px;box-shadow:0 2px 10px rgba(15,23,42,.06);border-top:4px solid #3b82f6;}
-.mstat-l{font-size:.7rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;}
-.mstat-v{font-size:1rem;font-weight:800;color:#0f172a;margin-top:4px;}
+.mstat{background:rgba(255,255,255,.66);backdrop-filter:blur(14px) saturate(150%);-webkit-backdrop-filter:blur(14px) saturate(150%);
+  border:1px solid rgba(255,255,255,.7);border-radius:15px;padding:12px 15px;
+  box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 26px -14px rgba(16,24,40,.14);position:relative;}
+.mstat::before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;border-radius:3px;background:var(--ac,#4f46e5);}
+.mstat-l{font-size:.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.6px;padding-left:9px;}
+.mstat-v{font-size:.98rem;font-weight:800;color:#0f172a;margin-top:3px;padding-left:9px;letter-spacing:-.3px;}
 
 /* ===== TOMBOL ===== */
 div.stButton>button,div.stFormSubmitButton>button,div.stDownloadButton>button{
-  border:none;border-radius:12px;font-weight:700;
-  box-shadow:0 3px 12px rgba(37,99,235,.28);transition:all .18s ease;
+  border-radius:12px;font-weight:600;transition:all .18s ease;
+  background:rgba(255,255,255,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(15,23,42,.09) !important;color:#334155 !important;
+  box-shadow:0 1px 2px rgba(16,24,40,.05);
 }
 div.stButton>button:hover,div.stFormSubmitButton>button:hover,div.stDownloadButton>button:hover{
-  transform:translateY(-2px);box-shadow:0 7px 18px rgba(37,99,235,.4);
+  transform:translateY(-2px);background:#fff;box-shadow:0 10px 24px -10px rgba(16,24,40,.22);
+}
+div.stButton>button[kind="primary"],div.stFormSubmitButton>button[kind="primary"],div.stDownloadButton>button[kind="primary"]{
+  background:linear-gradient(135deg,#4f46e5,#7c3aed) !important;color:#fff !important;border:none !important;
+  box-shadow:0 10px 22px -8px rgba(79,70,229,.5);
 }
 
-/* ===== TABEL ===== */
-div[data-testid="stDataFrame"],div[data-testid="stTable"]{border-radius:14px;overflow:hidden;}
+/* ===== TABEL & EXPANDER ===== */
+div[data-testid="stDataFrame"],div[data-testid="stTable"]{border-radius:16px;overflow:hidden;
+  background:rgba(255,255,255,.6);
+  border:1px solid rgba(255,255,255,.7);}
+div[data-testid="stExpander"]{background:rgba(255,255,255,.6);backdrop-filter:blur(14px);
+  border-radius:16px;border:1px solid rgba(255,255,255,.7) !important;
+  box-shadow:0 10px 30px -18px rgba(16,24,40,.14);}
 
 /* ===== STATEMEN LABA RUGI ===== */
-.plcard{background:#fff;border:1px solid #e5eaf2;border-radius:18px;padding:6px 22px;box-shadow:0 4px 20px rgba(15,23,42,.07);max-width:760px;}
-.plrow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px dashed #e2e8f0;font-size:.95rem;color:#334155;}
+.plcard{background:rgba(255,255,255,.7);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  border:1px solid rgba(255,255,255,.75);border-radius:20px;padding:6px 22px;
+  box-shadow:0 16px 40px -20px rgba(16,24,40,.18);max-width:760px;}
+.plrow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px dashed rgba(15,23,42,.12);font-size:.94rem;color:#334155;}
 .plrow .plval{font-weight:800;color:#0f172a;}
 .plrow.minus .plval{color:#dc2626;}
-.plrow.total{border-bottom:none;background:linear-gradient(90deg,rgba(22,163,74,.12),rgba(22,163,74,.02));margin:6px -22px 0;padding:16px 22px;border-radius:0 0 18px 18px;font-weight:800;color:#14532d;}
-.plrow.total .plval{color:#15803d;font-size:1.25rem;}
+.plrow.total{border-bottom:none;background:linear-gradient(90deg,rgba(5,150,105,.10),rgba(5,150,105,.02));margin:6px -22px 0;padding:16px 22px;border-radius:0 0 20px 20px;font-weight:800;color:#065f46;}
+.plrow.total .plval{color:#047857;font-size:1.2rem;}
 
 /* ===== KOSONG & PROGRESS ===== */
-.empty{background:#fff;border:2px dashed #cbd5e1;color:#64748b;text-align:center;border-radius:16px;padding:26px;font-weight:600;}
+.empty{background:rgba(255,255,255,.55);border:1.5px dashed rgba(15,23,42,.14);color:#64748b;text-align:center;border-radius:16px;padding:26px;font-weight:600;backdrop-filter:blur(10px);}
 div.stProgress>div>div{background:linear-gradient(90deg,#f59e0b,#ef4444);}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
+
+
+# -- Ikon SVG minimalis (garis, bukan emoji) --
+_S = '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'
+ICON = {
+    "cash": _S + '<rect x="2" y="6" width="20" height="13" rx="2.5"/><circle cx="12" cy="12.5" r="2.4"/><path d="M6.5 6V5.2A2.2 2.2 0 0 1 8.7 3h6.6a2.2 2.2 0 0 1 2.2 2.2V6"/></svg>',
+    "box": _S + '<path d="M21 8.2 12 3 3 8.2v7.6L12 21l9-5.2V8.2z"/><path d="M3.4 8.4 12 13.3l8.6-4.9"/><path d="M12 13.3V21"/></svg>',
+    "chart": _S + '<path d="M3 17.5 9.5 11l4 4L21 7"/><path d="M15.5 7H21v5.5"/></svg>',
+    "tag": _S + '<path d="M12.6 2.6 21 11a2.2 2.2 0 0 1 0 3.1L14 21.1a2.2 2.2 0 0 1-3.1 0L2.5 12.6V4.6a2 2 0 0 1 2-2z"/><circle cx="7.3" cy="7.3" r="1.3"/></svg>',
+    "receipt": _S + '<path d="M6 2.5h12v19l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4z"/><path d="M9 7h6"/><path d="M9 10.5h6"/><path d="M9 14h4"/></svg>',
+    "wallet": _S + '<rect x="2.5" y="5.5" width="19" height="14" rx="3"/><path d="M17 12.5h2"/><path d="M15.5 5.5V4a2 2 0 0 0-2-2H6a3 3 0 0 0-3 3.5"/></svg>',
+    "coin": _S + '<circle cx="12" cy="12" r="9"/><path d="M12 7v10"/><path d="M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1-3 2.4c0 3.2 6 1.8 6 5 0 1.4-1.3 2.4-3 2.4s-3-1.1-3-2.5"/></svg>',
+}
+
+
+def tint(hexc, alpha):
+    h = hexc.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
 
 
 def page_title(emoji, text, caption_text):
@@ -286,10 +364,12 @@ def section(emoji, text, note=""):
     st.markdown(f'<div class="sechead">{emoji}&nbsp; {text}&nbsp;&nbsp;{small}</div>', unsafe_allow_html=True)
 
 
-def kpi_card(label, value, emoji, grad, sub=""):
+def kpi_card(label, value, icon_key, accent, sub=""):
+    svg = ICON.get(icon_key, "")
     st.markdown(
-        f"""<div class="kpi-card" style="background:{grad};">
-        <div class="kpi-ico">{emoji}</div>
+        f"""<div class="kpi-card" style="--ac:{accent};--acb:{tint(accent,.10)};--acb2:{tint(accent,.24)};--acg:{tint(accent,.30)};">
+        <div class="kpi-glow"></div>
+        <div class="kpi-ico">{svg}</div>
         <div class="kpi-label">{label}</div>
         <div class="kpi-val">{value}</div>
         <div class="kpi-sub">{sub}</div></div>""",
@@ -297,9 +377,9 @@ def kpi_card(label, value, emoji, grad, sub=""):
     )
 
 
-def mini_stat(label, value, color):
+def mini_stat(label, value, color="#4f46e5"):
     st.markdown(
-        f'<div class="mstat" style="border-top-color:{color};"><div class="mstat-l">{label}</div><div class="mstat-v">{value}</div></div>',
+        f'<div class="mstat" style="--ac:{color};"><div class="mstat-l">{label}</div><div class="mstat-v">{value}</div></div>',
         unsafe_allow_html=True,
     )
 
@@ -309,7 +389,7 @@ def empty_state(text, icon="📭"):
 
 
 def goto(label_menu):
-    """Navigasi programatik: simpan target, halaman dulu baru ubah widget radio."""
+    """Navigasi programatik: simpan target, rerun dulu, baru ubah widget radio."""
     st.session_state["__nav_target"] = label_menu
     st.rerun()
 
@@ -343,8 +423,8 @@ def sidebar():
         label_visibility="collapsed",
     )
     st.sidebar.markdown('<div class="menulabel">ℹ️ Info</div>', unsafe_allow_html=True)
-    db_label = "☁️ Database: Supabase" if IS_PG else "💾 Database: SQLite lokal"
-    st.sidebar.markdown(f'<div class="sidechip">🗄️ {db_label}</div>', unsafe_allow_html=True)
+    db_label = "☁️ Supabase — data aman" if IS_PG else "💾 SQLite — data lokal"
+    st.sidebar.markdown(f'<div class="sidechip">{db_label}</div>', unsafe_allow_html=True)
     st.sidebar.markdown(
         f'<div class="sidechip">📅 {datetime.now().strftime("%A, %d %B %Y")}</div>',
         unsafe_allow_html=True,
@@ -361,7 +441,7 @@ menu = sidebar()
 # ============================================================
 if menu.startswith("📊"):
 
-    page_title("📊", "Dashboard Toko Grosir", "Ringkasan performa bisnis secara real-time")
+    page_title("Dashboard", "Toko Grosir", "Ringkasan performa bisnis secara real-time")
 
     # -- Tombol aksi cepat --
     qa = st.columns(4)
@@ -388,18 +468,13 @@ if menu.startswith("📊"):
 
     r1 = st.columns(4)
     with r1[0]:
-        kpi_card("Total Omzet", rupiah(omzet), "💵",
-                 "linear-gradient(135deg,#0ea5e9,#2563eb)")
+        kpi_card("Total Omzet", rupiah(omzet), "cash", "#4F46E5")
     with r1[1]:
-        kpi_card("Total HPP / Modal", rupiah(hpp), "📦",
-                 "linear-gradient(135deg,#f59e0b,#ea580c)")
+        kpi_card("Total HPP / Modal", rupiah(hpp), "box", "#D97706")
     with r1[2]:
-        kpi_card("Laba Bersih", rupiah(laba_bersih), "🏆",
-                 "linear-gradient(135deg,#22c55e,#15803d)",
-                 f"Margin {margin:.1f}%")
+        kpi_card("Laba Bersih", rupiah(laba_bersih), "chart", "#059669", f"Margin {margin:.1f}%")
     with r1[3]:
-        kpi_card("Jumlah SKU", f"{int(jml_sku)} item", "🏷️",
-                 "linear-gradient(135deg,#8b5cf6,#6d28d9)")
+        kpi_card("Jumlah SKU", f"{int(jml_sku)} item", "tag", "#7C3AED")
 
     r2 = st.columns(2)
     with r2[0]:
@@ -409,7 +484,7 @@ if menu.startswith("📊"):
     st.caption("💡 Laba bersih = Omzet − HPP − Biaya Operasional")
 
     # -- Peringatan stok menipis --
-    section("⚠️", "Peringatan Stok Menipis", " Barang dengan stok di bawah limit")
+    section("⚠️", "Peringatan Stok Menipis", "Barang dengan stok di bawah limit")
     rendah = df(
         "SELECT sku, nama, kategori, stok, limit_alert, harga_jual FROM barang WHERE stok <= limit_alert ORDER BY stok ASC"
     )
@@ -453,7 +528,7 @@ if menu.startswith("📊"):
 # ============================================================
 elif menu.startswith("📥"):
 
-    page_title("📥", "Barang Masuk / Restock", "Kelola master barang & catat penerimaan stok grosir")
+    page_title("Barang Masuk / Restock", "Toko Grosir", "Kelola master barang & catat penerimaan stok grosir")
 
     section("➕", "Tambah Master Barang Baru")
     with st.form("form_master", clear_on_submit=True):
@@ -494,7 +569,7 @@ elif menu.startswith("📥"):
                     st.error(f"❌ Gagal menyimpan: {e}")
 
     daftar = df("SELECT sku, nama, stok, harga_beli FROM barang ORDER BY nama")
-    section("📦", "Restock Barang Existing", " Tambah stok untuk barang yang sudah terdaftar")
+    section("📦", "Restock Barang Existing", "Tambah stok untuk barang yang sudah terdaftar")
     if daftar.empty:
         empty_state("Belum ada barang — tambahkan master barang terlebih dahulu di atas.", "🏷️")
     else:
@@ -549,7 +624,7 @@ elif menu.startswith("📥"):
 # ============================================================
 elif menu.startswith("📤"):
 
-    page_title("📤", "Barang Keluar / POS Kasir", "Catat penjualan grosir — kalkulasi otomatis & stok terpotong real-time")
+    page_title("Barang Keluar / POS Kasir", "Toko Grosir", "Catat penjualan grosir — kalkulasi otomatis & stok terpotong real-time")
 
     barang = df("SELECT sku, nama, stok, harga_beli, harga_jual, limit_alert FROM barang ORDER BY nama")
     if barang.empty:
@@ -584,11 +659,11 @@ elif menu.startswith("📤"):
                 pr_laba = pr_omzet - pr_hpp
                 pv = st.columns(3)
                 with pv[0]:
-                    mini_stat("💵 Omzet (Penjualan)", rupiah(pr_omzet), "#0ea5e9")
+                    mini_stat("💵 Omzet (Penjualan)", rupiah(pr_omzet), "#4F46E5")
                 with pv[1]:
-                    mini_stat("📦 HPP / Modal", rupiah(pr_hpp), "#f59e0b")
+                    mini_stat("📦 HPP / Modal", rupiah(pr_hpp), "#D97706")
                 with pv[2]:
-                    mini_stat("🟢 Untung (Laba)", rupiah(pr_laba), "#22c55e")
+                    mini_stat("🟢 Untung (Laba)", rupiah(pr_laba), "#059669")
 
                 jual = st.form_submit_button("💰 Proses Penjualan & Potong Stok", type="primary", use_container_width=True)
 
@@ -620,9 +695,7 @@ elif menu.startswith("📤"):
             hasil = df("SELECT nama, stok, limit_alert FROM barang WHERE sku = ?", (sku_pick,))
             if not hasil.empty:
                 r0 = hasil.iloc[0]
-                kpi_card(r0["nama"], f"{int(r0['stok'])} unit", "📦",
-                         "linear-gradient(135deg,#475569,#1e293b)",
-                         "Stok tersisa saat ini")
+                kpi_card(r0["nama"], f"{int(r0['stok'])} unit", "box", "#475569", "Stok tersisa saat ini")
                 if r0["stok"] <= r0["limit_alert"]:
                     st.error("⚠️ Stok menyentuh limit alert!")
                 kotak = int(r0["stok"])
@@ -672,7 +745,7 @@ elif menu.startswith("📤"):
 # ============================================================
 else:
 
-    page_title("📈", "Laporan Laba Rugi (P&L)", "Pendapatan − HPP − Biaya Operasional = Laba Bersih Akhir")
+    page_title("Laporan Laba Rugi (P&L)", "Toko Grosir", "Pendapatan − HPP − Biaya Operasional = Laba Bersih Akhir")
 
     col_t1, col_t2 = st.columns(2)
     tgl_awal = col_t1.date_input("📅 Dari Tanggal", value=date.today().replace(day=1))
@@ -722,24 +795,23 @@ else:
     section("📊", "Ringkasan Periode")
     r1 = st.columns(4)
     with r1[0]:
-        kpi_card("Pendapatan", rupiah(pendapatan), "💵", "linear-gradient(135deg,#0ea5e9,#2563eb)")
+        kpi_card("Pendapatan", rupiah(pendapatan), "cash", "#4F46E5")
     with r1[1]:
-        kpi_card("HPP", rupiah(hpp), "📦", "linear-gradient(135deg,#f59e0b,#ea580c)")
+        kpi_card("HPP", rupiah(hpp), "box", "#D97706")
     with r1[2]:
-        kpi_card("Laba Kotor", rupiah(laba_kotor), "🟩", "linear-gradient(135deg,#14b8a6,#0f766e)")
+        kpi_card("Laba Kotor", rupiah(laba_kotor), "wallet", "#0D9488")
     with r1[3]:
-        kpi_card("Laba Bersih", rupiah(laba_bersih), "🏆",
-                 "linear-gradient(135deg,#22c55e,#15803d)", f"Margin {margin_pl:.1f}%")
+        kpi_card("Laba Bersih", rupiah(laba_bersih), "chart", "#059669", f"Margin {margin_pl:.1f}%")
 
     section("🧾", "Statement Laba Rugi", f"Periode {tgl_awal.strftime('%d/%m/%Y')} — {tgl_akhir.strftime('%d/%m/%Y')}")
     st.markdown(
         f"""
         <div class="plcard">
-          <div class="plrow"><span>🟦 Pendapatan (Omzet Penjualan)</span><span class="plval">{rupiah(pendapatan)}</span></div>
-          <div class="plrow minus"><span>🟧 HPP / Harga Pokok Penjualan</span><span class="plval">− {rupiah(hpp)}</span></div>
-          <div class="plrow"><span>🟩 <b>Laba Kotor</b></span><span class="plval">{rupiah(laba_kotor)}</span></div>
-          <div class="plrow minus"><span>🟥 Biaya Operasional</span><span class="plval">− {rupiah(biaya_ops)}</span></div>
-          <div class="plrow total"><span>⭐ LABA BERSIH AKHIR</span><span class="plval">{rupiah(laba_bersih)}</span></div>
+          <div class="plrow"><span>Pendapatan (Omzet Penjualan)</span><span class="plval">{rupiah(pendapatan)}</span></div>
+          <div class="plrow minus"><span>HPP / Harga Pokok Penjualan</span><span class="plval">− {rupiah(hpp)}</span></div>
+          <div class="plrow"><span><b>Laba Kotor</b></span><span class="plval">{rupiah(laba_kotor)}</span></div>
+          <div class="plrow minus"><span>Biaya Operasional</span><span class="plval">− {rupiah(biaya_ops)}</span></div>
+          <div class="plrow total"><span>LABA BERSIH AKHIR</span><span class="plval">{rupiah(laba_bersih)}</span></div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -778,20 +850,22 @@ else:
     excel_bio.seek(0)
 
     x1.download_button(
-        label="📥 Export Excel",
+        label="📤 Export Excel",
         data=excel_bio,
         file_name=f"Laporan_Laba_Rugi_{tgl_awal}_{tgl_akhir}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         use_container_width=True,
+        type="primary",
     )
 
     with x2:
         st.components.v1.html(
             """
             <button onclick="window.print()" style="
-                width:100%; padding:0.4rem 0.6rem; background:linear-gradient(135deg,#6366f1,#8b5cf6);
-                color:white; border:none; border-radius:0.55rem; font-weight:700; cursor:pointer;
-                box-shadow:0 3px 12px rgba(99,102,241,.4);" >
+                width:100%; padding:0.4rem 0.6rem; background:linear-gradient(135deg,#4f46e5,#7c3aed);
+                color:white; border:none; border-radius:0.75rem; font-weight:600; cursor:pointer;
+                font-family:'Inter','Segoe UI',sans-serif;
+                box-shadow:0 10px 22px -8px rgba(79,70,229,.5);" >
                 🖨️ Cetak Ringkasan
             </button>
             """,
