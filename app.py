@@ -452,6 +452,14 @@ if DB_CONFIG_ERROR:
              "Cek bagian host pada URL — pastikan menyamai `aws-1-eu-west-3.pooler.supabase.com` "
              "dengan angka project-mu, tanpa salah ketik.")
         )
+    if "tenant" in low and "not found" in low:
+        tips.append(
+            ("Project Supabase tidak aktif / belum sinkron (tenant not found)",
+             "❗ Bukan masalah password. Buka supabase.com/dashboard dan periksa status project: "
+             "kalau tertulis **Paused**, klik **Restore project**. Kalau Active, jalankan "
+             "**Restart project** (Settings → General → Project availability). Tunggu 1–2 menit, "
+             "lalu refresh aplikasi ini.")
+        )
     if "connection refused" in low or "timed out" in low or "timeout" in low:
         tips.append(
             ("Port/servis bermasalah",
