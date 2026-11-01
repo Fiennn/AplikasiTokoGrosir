@@ -1,8 +1,8 @@
 [theme]
-primaryColor = "#2E86AB"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f0f7ff"
-textColor = "#1a1a2e"
+primaryColor = "#2563EB"
+backgroundColor = "#f4f7fb"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#0f172a"
 
 [browser]
 gatherUsageStats = false
