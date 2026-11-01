@@ -1,0 +1,8 @@
+# Database & environment
+*.db
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.streamlit/secrets.toml
