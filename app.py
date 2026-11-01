@@ -309,8 +309,14 @@ def empty_state(text, icon="📭"):
 
 
 def goto(label_menu):
-    st.session_state["Navigasi"] = label_menu
+    """Navigasi programatik: simpan target, halaman dulu baru ubah widget radio."""
+    st.session_state["__nav_target"] = label_menu
     st.rerun()
+
+
+# Terapkan target navigasi SEBELUM widget radio dibuat
+if "__nav_target" in st.session_state:
+    st.session_state["Navigasi"] = st.session_state.pop("__nav_target")
 
 
 # ============================================================
@@ -333,6 +339,7 @@ def sidebar():
             "📤 Barang Keluar / POS Kasir",
             "📈 Laporan Laba Rugi (P&L)",
         ],
+        key="Navigasi",
         label_visibility="collapsed",
     )
     st.sidebar.markdown('<div class="menulabel">ℹ️ Info</div>', unsafe_allow_html=True)
